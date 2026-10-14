@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChitChat - Master Admin & Merchant Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- ADMIN TOP NAVIGATION BAR -->
+    <header class="bg-gray-900 border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-gradient-to-tr from-pink-600 to-purple-600 rounded-2xl shadow-lg shadow-pink-600/30">
+                <i class="fa-solid fa-user-shield text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg text-pink-500 tracking-wide">ChitChat Admin Dashboard</h1>
+                <p class="text-xs text-gray-400">Master Owner & Merchant Management System</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="bg-gray-800 px-3 py-1.5 rounded-xl border border-gray-700 text-xs">
+                <span class="text-gray-400">Status:</span> <span class="text-green-400 font-bold">● Live Connected</span>
+            </div>
+            <button onclick="logoutAdmin()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold transition">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- LEFT COLUMN: COIN RECHARGE & MASTER BALANCE -->
+        <section class="space-y-6">
+            
+            <!-- MASTER RECHARGE PANEL -->
+            <div class="bg-gray-900 border border-gray-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <h2 class="font-bold text-yellow-400 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-coins"></i> Master Coin Recharge System
+                    </h2>
+                    <span class="bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">Owner Only</span>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Target Username / UID</label>
+                        <input type="text" id="targetUser" placeholder="उदा. Rahul Verma या #741829" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-xs focus:outline-none focus:border-pink-500 text-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Coins Amount</label>
+                        <input type="number" id="coinAmount" placeholder="उदा. 5000" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-xs focus:outline-none focus:border-pink-500 text-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Admin Secret Password Key</label>
+                        <input type="password" id="adminSecretKey" placeholder="सीक्रेट पासवर्ड डालें" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-xs focus:outline-none focus:border-pink-500 text-white">
+                    </div>
+
+                    <div class="pt-2 flex gap-2">
+                        <button onclick="processRecharge('add')" class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 py-3 rounded-xl text-xs font-bold shadow-lg shadow-green-600/20">
+                            <i class="fa-solid fa-plus-circle"></i> कॉइन्स जोड़ें (+)
+                        </button>
+                        <button onclick="processRecharge('deduct')" class="flex-1 bg-gradient-to-r from-red-600 to-rose-600 hover:opacity-90 py-3 rounded-xl text-xs font-bold shadow-lg shadow-red-600/20">
+                            <i class="fa-solid fa-minus-circle"></i> कॉइन्स काटें (-)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MERCHANT / RESELLER CREATION -->
+            <div class="bg-gray-900 border border-gray-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <h2 class="font-bold text-blue-400 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-store"></i> Merchant / Reseller Panel
+                    </h2>
+                </div>
+                <p class="text-xs text-gray-400">यहाँ से मर्चेंट/एजेंट बनाएं जो आपकी अनुमति से यूज़र्स को सिक्के बेच सकें।</p>
+                <div class="space-y-3">
+                    <input type="text" id="merchantName" placeholder="मर्चेंट का नाम या ID" class="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-xs focus:outline-none focus:border-blue-500 text-white">
+                    <button onclick="createMerchant()" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl text-xs font-bold shadow-lg shadow-blue-600/20">
+                        मर्चेंट/एजेंट बनाएं 🚀
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN (2 COLS WIDE): USER MANAGEMENT & TRANSACTIONS -->
+        <section class="lg:col-span-2 space-y-6">
+
+            <!-- ACTIVE USER & CONTROL TABLE -->
+            <div class="bg-gray-900 border border-gray-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <h2 class="font-bold text-pink-500 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> User & Room Management
+                    </h2>
+                    <button onclick="refreshUserList()" class="text-xs text-gray-400 hover:text-white"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-gray-300">
+                        <thead class="bg-gray-800/60 text-gray-400 uppercase text-[10px]">
+                            <tr>
+                                <th class="p-3 rounded-l-xl">User / UID</th>
+                                <th class="p-3">Role</th>
+                                <th class="p-3">Coins Balance</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 rounded-r-xl text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody" class="divide-y divide-gray-800/50">
+                            <!-- Sample User Row -->
+                            <tr>
+                                <td class="p-3 font-bold text-white flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-full bg-pink-600 flex items-center justify-center text-xs">R</div>
+                                    Rahul Verma (#741829)
+                                </td>
+                                <td class="p-3"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-md border border-blue-500/20">User</span></td>
+                                <td class="p-3 font-bold text-yellow-400">1,000 💎</td>
+                                <td class="p-3"><span class="text-green-400">Active</span></td>
+                                <td class="p-3 text-right space-x-1">
+                                    <button onclick="makeVIP('Rahul')" class="bg-purple-600/30 text-purple-300 px-2 py-1 rounded-lg hover:bg-purple-600 hover:text-white">VIP</button>
+                                    <button onclick="banUser('Rahul')" class="bg-red-600/30 text-red-300 px-2 py-1 rounded-lg hover:bg-red-600 hover:text-white">Ban</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LIVE TRANSACTION & AUDIT LOG -->
+            <div class="bg-gray-900 border border-gray-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <h2 class="font-bold text-purple-400 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i> Live Transaction & Activity Log
+                    </h2>
+                </div>
+                <div id="activityLogs" class="bg-gray-950/60 border border-gray-800/80 rounded-2xl p-4 h-48 overflow-y-auto space-y-2 text-xs font-mono text-gray-400">
+                    <p class="text-green-400">[SYSTEM]: Admin Dashboard Loaded. Connected to Server.</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- JS LOGIC TO CONNECT WITH BACKEND -->
+    <script>
+        const socket = io();
+
+        function logActivity(message, colorClass = "text-gray-300") {
+            const logsDiv = document.getElementById('activityLogs');
+            const time = new Date().toLocaleTimeString();
+            logsDiv.innerHTML += `<p class="${colorClass}">[${time}] ${message}</p>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function processRecharge(actionType) {
+            const targetUser = document.getElementById('targetUser').value.trim();
+            const amount = document.getElementById('coinAmount').value.trim();
+            const secretKey = document.getElementById('adminSecretKey').value.trim();
+
+            if (!targetUser || !amount || !secretKey) {
+                alert('कृपया सभी फ़ील्ड (User, Amount, Password Key) भरें!');
+                return;
+            }
+
+            // Socket Event to Server
+            socket.emit('admin_recharge', {
+                targetUser: targetUser,
+                amount: parseInt(amount) * (actionType === 'deduct' ? -1 : 1),
+                secretKey: secretKey
+            });
+
+            logActivity(`[RECHARGE REQUEST]: Sent ${amount} coins ${actionType} for ${targetUser}`, 'text-yellow-400');
+        }
+
+        function createMerchant() {
+            const name = document.getElementById('merchantName').value.trim();
+            if(!name) return alert('मर्चेंट का नाम दर्ज करें!');
+            logActivity(`[MERCHANT CREATED]: ${name} is now an Authorized Merchant.`, 'text-blue-400');
+            alert(`मर्चेंट ${name} सफलतापूर्वक बन गया है!`);
+        }
+
+        function banUser(user) {
+            if(confirm(`क्या आप ${user} को बैन करना चाहते हैं?`)) {
+                logActivity(`[USER BANNED]: ${user} was banned by Admin.`, 'text-red-400');
+            }
+        }
+
+        function makeVIP(user) {
+            logActivity(`[VIP PROMOTED]: ${user} is now a VIP member.`, 'text-purple-400');
+            alert(`${user} अब VIP सदस्य बन गए हैं!`);
+        }
+
+        function refreshUserList() {
+            logActivity('[SYSTEM]: User list refreshed from Server.', 'text-green-400');
+        }
+
+        function logoutAdmin() {
+            if(confirm('क्या आप एडमिन डैशबोर्ड से बाहर निकलना चाहते हैं?')) {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+  </html>
